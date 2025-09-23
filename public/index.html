@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coinera - User Panel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #141e30, #243b55);
+      color: #fff;
+      text-align: center;
+      padding: 30px;
+    }
+    .container {
+      max-width: 400px;
+      margin: auto;
+      background: #1e2a38;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px #000;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 6px 0;
+      border-radius: 8px;
+      border: none;
+    }
+    button {
+      background: #ff9800;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    h2 {
+      color: #ff9800;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Coinera - User Panel</h2>
+
+    <div id="auth">
+      <h3>Register</h3>
+      <input type="text" id="regUser" placeholder="Username" />
+      <input type="password" id="regPass" placeholder="Password" />
+      <input type="text" id="regRef" placeholder="Referral (optional)" />
+      <button onclick="register()">Register</button>
+
+      <h3>Login</h3>
+      <input type="text" id="logUser" placeholder="Username" />
+      <input type="password" id="logPass" placeholder="Password" />
+      <button onclick="login()">Login</button>
+    </div>
+
+    <div id="panel" style="display:none;">
+      <h3>Welcome <span id="uname"></span></h3>
+      <p>Balance: <span id="balance">0</span> COIN</p>
+
+      <h4>Deposit</h4>
+      <input type="number" id="depAmount" placeholder="Amount" />
+      <input type="text" id="depMethod" placeholder="Method (Binance/TRC20/Easypaisa)" />
+      <button onclick="deposit()">Deposit</button>
+
+      <h4>Withdraw</h4>
+      <input type="number" id="wdAmount" placeholder="Amount" />
+      <input type="text" id="wdWallet" placeholder="Wallet/Account" />
+      <button onclick="withdraw()">Withdraw</button>
+    </div>
+  </div>
+
+  <script>
+    let currentUser = null;
+
+    async function register() {
+      const username = document.getElementById("regUser").value;
+      const password = document.getElementById("regPass").value;
+      const referral = document.getElementById("regRef").value;
+      const res = await fetch("/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password, referral })
+      });
+      const data = await res.json();
+      alert(data.message || data.error);
+    }
+
+    async function login() {
+      const username = document.getElementById("logUser").value;
+      const password = document.getElementById("logPass").value;
+      const res = await fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (data.user) {
+        currentUser = data.user;
+        document.getElementById("uname").innerText = currentUser.username;
+        document.getElementById("balance").innerText = currentUser.balance;
+        document.getElementById("auth").style.display = "none";
+        document.getElementById("panel").style.display = "block";
+      } else {
+        alert(data.error);
+      }
+    }
+
+    async function deposit() {
+      const amount = document.getElementById("depAmount").value;
+      const method = document.getElementById("depMethod").value;
+      const res = await fetch("/deposit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: currentUser.id, method, amount })
+      });
+      const data = await res.json();
+      alert(data.message || data.error);
+    }
+
+    async function withdraw() {
+      const amount = document.getElementById("wdAmount").value;
+      const wallet = document.getElementById("wdWallet").value;
+      const res = await fetch("/withdraw", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: currentUser.id, amount, wallet })
+      });
+      const data = await res.json();
+      alert(data.message || data.error);
+    }
+  </script>
+</body>
+</html>
